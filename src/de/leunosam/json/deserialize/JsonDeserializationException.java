@@ -16,8 +16,4 @@ public class JsonDeserializationException extends RuntimeException {
         super(cause);
     }
 
-    public JsonDeserializationException(String message) {
-        super(message);
-    }
-
 }

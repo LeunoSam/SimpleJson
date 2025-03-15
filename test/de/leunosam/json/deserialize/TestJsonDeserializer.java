@@ -3,6 +3,7 @@ package de.leunosam.json.deserialize;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
@@ -26,14 +27,14 @@ class TestJsonDeserializer {
         otherJson.someChars = "}]]}";
 
         json.id = 10;
-        json.list = List.of("Test{", "B]", "7A1,5");
+        json.list = List.of("Test{", "B]", "7A:1,5");
         json.other = otherJson;
 
         Map<String, String> fieldMap = JsonDeserializer
                 .readFields(new JsonPrettifier().prettify(json));
 
         assertAll(() -> assertEquals("10", fieldMap.get("id").replaceAll("\\s+", "")),
-                () -> assertEquals("[\"Test{\",\"B]\",\"7A1,5\"]",
+                () -> assertEquals("[\"Test{\",\"B]\",\"7A:1,5\"]",
                         fieldMap.get("list").replaceAll("\\s+", "")),
                 () -> assertEquals(otherJson.serialize(),
                         fieldMap.get("other").replaceAll("\\s+", "")));
@@ -93,6 +94,20 @@ class TestJsonDeserializer {
     }
 
     @Test
+    void testInitJson() {
+        OtherJson other = new OtherJson();
+        JsonPrettifier prettifier = new JsonPrettifier();
+
+        other.isJson = true;
+        other.someChars = "1234huahbnije!?!";
+        other.someDouble = 0.86180d;
+        other.someLong = 178367128349l;
+
+        assertThrows(JsonDeserializationException.class,
+                () -> new MyJson(prettifier.prettify(other)));
+    }
+
+    @Test
     void testNullValues() {
         String[] nullValues = { "null", "   null     \n", "\n\tnull   ", "null\t\t" };
         for (String n : nullValues) {
@@ -110,6 +125,19 @@ class TestJsonDeserializer {
     }
 
     @Test
+    void testWrongDeserializer() {
+        OtherJson other = new OtherJson();
+        JsonPrettifier prettifier = new JsonPrettifier();
+
+        other.isJson = true;
+        other.someChars = "1234huahbnije!?!";
+        other.someDouble = 0.86180d;
+        other.someLong = 178367128349l;
+
+        assertEquals(other, new OtherJson(prettifier.prettify(other)));
+    }
+
+    @Test
     void testEmptyList() {
         String list = "   [\n  \t ]   ";
         assertTrue(JsonDeserializer.readBooleanList(list).isEmpty());
@@ -124,6 +152,14 @@ class TestJsonDeserializer {
 
         private static final long serialVersionUID = 2239490901056984790L;
 
+        private MyJson() {
+            super();
+        }
+
+        private MyJson(String json) {
+            super(json);
+        }
+
         @JsonField
         private Integer id;
         @JsonField
@@ -133,7 +169,7 @@ class TestJsonDeserializer {
 
         @Override
         protected JsonDeserializer<? extends Json> getDeserializer() {
-            return null;
+            return new OtherDeserializer();
         }
 
     }
@@ -151,26 +187,37 @@ class TestJsonDeserializer {
         @JsonField
         private String someChars;
 
+        private OtherJson() {
+            super();
+        }
+
+        private OtherJson(String json) {
+            super(json);
+        }
+
         @Override
         protected JsonDeserializer<? extends Json> getDeserializer() {
-            return new JsonDeserializer<OtherJson>() {
-
-                @Override
-                public OtherJson getObject(String json) throws JsonDeserializationException {
-                    json = json.strip();
-                    if (json.equals(JsonConstants.JSON_NULL)) {
-                        return null;
-                    }
-                    OtherJson result = new OtherJson();
-                    Map<String, String> map = JsonDeserializer.readFields(json);
-                    result.isJson = JsonDeserializer.readBooleanValue(map.get("isJson"));
-                    result.someDouble = JsonDeserializer.readDoubleValue(map.get("someDouble"));
-                    result.someLong = JsonDeserializer.readLongValue(map.get("someLong"));
-                    result.someChars = JsonDeserializer.readStringValue(map.get("someChars"));
-                    return result;
-                }
-            };
+            return new OtherDeserializer();
         }
+    }
+
+    private class OtherDeserializer extends JsonDeserializer<OtherJson> {
+
+        @Override
+        public OtherJson getObject(String json) throws JsonDeserializationException {
+            json = json.strip();
+            if (json.equals(JsonConstants.JSON_NULL)) {
+                return null;
+            }
+            OtherJson result = new OtherJson();
+            Map<String, String> map = JsonDeserializer.readFields(json);
+            result.isJson = JsonDeserializer.readBooleanValue(map.get("isJson"));
+            result.someDouble = JsonDeserializer.readDoubleValue(map.get("someDouble"));
+            result.someLong = JsonDeserializer.readLongValue(map.get("someLong"));
+            result.someChars = JsonDeserializer.readStringValue(map.get("someChars"));
+            return result;
+        }
+
     }
 
 }

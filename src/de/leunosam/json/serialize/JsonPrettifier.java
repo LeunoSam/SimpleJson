@@ -13,7 +13,6 @@ public class JsonPrettifier {
 
     private int tabLevel = 0;
     private boolean isString = false;
-    private String pretifiedJson;
 
     /**
      * Returns a prettified version of the serialized {@link Json}.
@@ -68,8 +67,4 @@ public class JsonPrettifier {
         return builder.toString();
     }
 
-    @Override
-    public String toString() {
-        return pretifiedJson;
-    }
 }

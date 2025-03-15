@@ -64,16 +64,18 @@ public abstract class Json implements Serializable {
     public void deserialize(String json) {
         try {
             update(getDeserializer().getObject(json));
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            // should never happen, except wrong string
+        } catch (IllegalAccessException e) {
+            // should never happen
+            throw new JsonDeserializationException(e);
+        } catch (IllegalStateException e) {
+            // happens if registered Deserializer returns a wrong type.
             throw new JsonDeserializationException(e);
         }
     }
 
-    private <T extends Json> void update(T newValues)
-            throws IllegalArgumentException, IllegalAccessException {
+    private <T extends Json> void update(T newValues) throws IllegalAccessException {
         if (!this.getClass().equals(newValues.getClass())) {
-            throw new IllegalStateException("Deserializer returns  not the right class!");
+            throw new IllegalStateException("Deserializer returns not the right class!");
         }
 
         for (Field field : getJsonFields()) {
@@ -116,6 +118,10 @@ public abstract class Json implements Serializable {
                 addFieldToSerializer(value, fieldName, field, serializer);
             }
         } catch (IllegalAccessException e) {
+            // should never happen
+            throw new JsonSerializationException(e);
+        } catch (IllegalArgumentException e) {
+            // happens if field is not serializable
             throw new JsonSerializationException(e);
         }
         return serializer;
@@ -150,7 +156,7 @@ public abstract class Json implements Serializable {
             JsonSerializer serializer) {
         ParameterizedType listType = (ParameterizedType) listField.getGenericType();
         Class<?> listTypeClass = (Class<?>) listType.getActualTypeArguments()[0];
-        if (listTypeClass.equals(Integer.class)) {
+        if (listTypeClass.equals(Boolean.class)) {
             serializer.addBooleanArrayField(fieldName, (List<Boolean>) list);
         } else if (listTypeClass.equals(Integer.class)) {
             serializer.addIntegerArrayField(fieldName, (List<Integer>) list);
@@ -173,7 +179,7 @@ public abstract class Json implements Serializable {
             return true;
         }
         Class<?> superClazz = clazz.getSuperclass();
-        return superClazz.equals(Object.class) ? false : isJson(superClazz);
+        return superClazz == null ? false : isJson(superClazz);
     }
 
     private String determineJsonFieldName(Field field) {
@@ -199,7 +205,7 @@ public abstract class Json implements Serializable {
                 e.printStackTrace();
             }
         }
-        return Objects.hash(objects);
+        return Objects.hash(objects.toArray());
     }
 
     @Override
@@ -229,6 +235,7 @@ public abstract class Json implements Serializable {
                 }
             }
         } catch (IllegalAccessException e) {
+            // should never happen
             return false;
         }
         return true;
