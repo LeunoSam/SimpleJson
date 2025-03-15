@@ -73,7 +73,7 @@ public abstract class Json implements Serializable {
     private <T extends Json> void update(T newValues)
             throws IllegalArgumentException, IllegalAccessException {
         if (!this.getClass().equals(newValues.getClass())) {
-            throw new IllegalStateException("Serializer has not the right class!");
+            throw new IllegalStateException("Deserializer returns  not the right class!");
         }
 
         for (Field field : getJsonFields()) {
@@ -195,6 +195,7 @@ public abstract class Json implements Serializable {
             try {
                 objects.add(field.get(this));
             } catch (IllegalArgumentException | IllegalAccessException e) {
+                // should never happen
                 e.printStackTrace();
             }
         }

@@ -10,7 +10,7 @@ import de.leunosam.json.util.JsonConstants;
 import de.leunosam.json.util.JsonField;
 
 /**
- * If you add a new {@link Json}-Class, you need to create a own
+ * If you add a new {@link Json}-Class, you need to create an own
  * {@link JsonDeserializer}, which can deserialize a Json-String into an
  * instance of your new class.
  * 
