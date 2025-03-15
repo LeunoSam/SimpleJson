@@ -1,6 +1,6 @@
 # Simple Json
 ## General information
-This is a librabry for the serialization and deserialization of Jsons. You are free to use this lirbrary for any purpose, for more information take a look at the [license](https://github.com/LeunoSam/SimpleJson/blob/main/LICENSE).
+This is a librabry for the serialization and deserialization of Jsons. You are free to use this library for any purpose, for more information take a look at the [license](https://github.com/LeunoSam/SimpleJson/blob/main/LICENSE).
 
 ## What is possible?
 You can serialize and deserialize any Objects that extend the abstract class **Json**.
